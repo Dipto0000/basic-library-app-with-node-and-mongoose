@@ -9,6 +9,7 @@ app.use(cors())
 app.use(express.json());
 
 app.get("/", (req: Request, res: Response) => {
+    console.log(req);
     res.send("Welcome to library management system");
 })
 
