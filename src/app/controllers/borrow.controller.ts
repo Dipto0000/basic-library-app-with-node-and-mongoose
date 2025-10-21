@@ -1,31 +1,55 @@
+
 import { Request, Response, NextFunction } from 'express';
 import { Borrow } from '../models/borrow.model';
 import { Book } from '../models/book.model';
 import sendResponse from '../../utils/sendResponse';
 
-export const borrowBook = (req: Request, res: Response, next: NextFunction) => {
-  (async () => {
-    try {
-      const { book: bookId, quantity, dueDate } = req.body;
-      const book = await Book.findById(bookId).lean();
-      if (!book || book.copies < quantity) {
-        return res.status(400).json({
-          success: false,
-          message: 'Not enough copies available',
-          error: 'Insufficient copies',
-        });
-      }
+export const borrowBook = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { bookId, quantity, dueDate } = req.body;
 
-      book.copies -= quantity;
-      await Book.findByIdAndUpdate(bookId, book);
-
-      const borrow = await Borrow.create({ book: bookId, quantity, dueDate });
-      sendResponse(res, true, 'Book borrowed successfully', borrow);
-    } catch (err) {
-      next(err);
+    // Validate request body
+    if (!bookId || !quantity || !dueDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields',
+      });
     }
-  })();
+
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: 'Book not found',
+      });
+    }
+
+    // Validate available copies
+    if (book.copies < quantity) {
+      return res.status(400).json({
+        success: false,
+        message: 'Not enough copies available',
+      });
+    }
+
+    // Update copies count
+    book.copies -= quantity;
+    if (book.copies === 0) book.available = false;
+    await book.save();
+
+    // Create borrow record
+    const borrow = await Borrow.create({
+      book: book._id,
+      quantity,
+      dueDate,
+    });
+
+    sendResponse(res, true, 'Book borrowed successfully', borrow);
+  } catch (err) {
+    next(err);
+  }
 };
+
 
 export const borrowedBooksSummary = async (req: Request, res: Response, next: NextFunction) => {
   try {

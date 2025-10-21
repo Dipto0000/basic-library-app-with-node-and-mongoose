@@ -3,7 +3,7 @@ import { borrowBook, borrowedBooksSummary } from '../../src/app/controllers/borr
 
 const router = express.Router();
 
-router.post('/', borrowBook);
-router.get('/', borrowedBooksSummary);
+router.post('/', borrowBook as express.RequestHandler);
+router.get('/', borrowedBooksSummary as express.RequestHandler);
 
 export default router;
