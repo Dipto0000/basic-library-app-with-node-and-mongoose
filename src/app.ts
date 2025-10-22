@@ -9,7 +9,14 @@ import bookRoutes from './routes/book.route';
 import borrowRoutes from './routes/borrow.routes';
 
 const app: Application = express();
+
+const corsOptions = {
+    origin: "https://library-backend-olive.vercel.app",
+    optionsSuccessStatus: 200 
+}
 app.use(cors())
+
+
 app.use(express.json());
 
 app.get("/", (req: Request, res: Response) => {
