@@ -16,28 +16,47 @@ exports.borrowedBooksSummary = exports.borrowBook = void 0;
 const borrow_model_1 = require("../models/borrow.model");
 const book_model_1 = require("../models/book.model");
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
-const borrowBook = (req, res, next) => {
-    (() => __awaiter(void 0, void 0, void 0, function* () {
-        try {
-            const { book: bookId, quantity, dueDate } = req.body;
-            const book = yield book_model_1.Book.findById(bookId).lean();
-            if (!book || book.copies < quantity) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Not enough copies available',
-                    error: 'Insufficient copies',
-                });
-            }
-            book.copies -= quantity;
-            yield book_model_1.Book.findByIdAndUpdate(bookId, book);
-            const borrow = yield borrow_model_1.Borrow.create({ book: bookId, quantity, dueDate });
-            (0, sendResponse_1.default)(res, true, 'Book borrowed successfully', borrow);
+const borrowBook = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { bookId, quantity, dueDate } = req.body;
+        // Validate request body
+        if (!bookId || !quantity || !dueDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields',
+            });
         }
-        catch (err) {
-            next(err);
+        const book = yield book_model_1.Book.findById(bookId);
+        if (!book) {
+            return res.status(404).json({
+                success: false,
+                message: 'Book not found',
+            });
         }
-    }))();
-};
+        // Validate available copies
+        if (book.copies < quantity) {
+            return res.status(400).json({
+                success: false,
+                message: 'Not enough copies available',
+            });
+        }
+        // Update copies count
+        book.copies -= quantity;
+        if (book.copies === 0)
+            book.available = false;
+        yield book.save();
+        // Create borrow record
+        const borrow = yield borrow_model_1.Borrow.create({
+            book: book._id,
+            quantity,
+            dueDate,
+        });
+        (0, sendResponse_1.default)(res, true, 'Book borrowed successfully', borrow);
+    }
+    catch (err) {
+        next(err);
+    }
+});
 exports.borrowBook = borrowBook;
 const borrowedBooksSummary = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {

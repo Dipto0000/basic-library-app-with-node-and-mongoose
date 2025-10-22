@@ -19,7 +19,7 @@ const PORT = 3000;
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield mongoose_1.default.connect("mongodb+srv://mongodb:mongodb@cluster0.u7yfn7u.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+            yield mongoose_1.default.connect("mongodb+srv://dipto2041:S9pSppF15WoXqkRp@cluster0.hvapxyy.mongodb.net/library-backend");
             console.log("Database connection successful");
             server = app_1.default.listen(PORT, () => {
                 console.log(`Server running on ${PORT}`);

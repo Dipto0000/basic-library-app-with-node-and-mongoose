@@ -8,7 +8,7 @@ let server : Server;
 const PORT = 3000
 async function main() {
     try {
-        await mongoose.connect ("mongodb+srv://dipto2041:S9pSppF15WoXqkRp@cluster0.hvapxyy.mongodb.net/library-backend")
+        await mongoose.connect (process.env.MONGODB_URL as string)
         console.log("Database connection successful")
         server = app.listen(PORT, () => {
             console.log(`Server running on ${PORT}`)
